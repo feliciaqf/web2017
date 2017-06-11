@@ -30,13 +30,17 @@
 			.icon-layout {
 				background: url('layout.png') no-repeat center center;
 			}
+			.datagrid-row td[ddfield]{
+				position: relative;
+			}
 			.drillgrid-cell-expander{
-				float:right;
+				position:absolute;
+				right:0;
+				top:0;
 				width: 20px;
     			height: 20px;
     			line-height: 20px;
     			text-align:center;
-    			margin-top:-110%;
     			cursor: pointer;
 			}
 			.drillgrid-cell-expand:before{
