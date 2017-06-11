@@ -287,7 +287,7 @@
 	        var clickHandler = ($.data(body[0],'events')||$._data(body[0],'events')).click[0].handler;  
 	        body.unbind('click').bind('click', function(e){  
 	            var tt = $(e.target);
-	            var td = tt.colsest('td');
+	            var td = tt.closest('td');
 	            var tr = tt.closest('tr.datagrid-row');  
 	            if (!tr.length){return}  
 //	            if (tt.hasClass('datagrid-row-expander')){  
@@ -305,7 +305,7 @@
 				if(tt.hasClass('drillgrid-cell-expand')){
 					tt.removeClass('drillgrid-cell-expand').addClass('drillgrid-cell-collapse');
 				}
-				if(tt.hasClass('drillgrid-cell-collapse')){
+				else if(tt.hasClass('drillgrid-cell-collapse')){
 					tt.removeClass('drillgrid-cell-collapse').addClass('drillgrid-cell-expand');
 				}
 	            e.stopPropagation();  
@@ -409,7 +409,7 @@
 	        } 
 		},
    		onAfterRender:function(target){
-   			this.bindEvent(target)
+   			this.bindEvents(target)
 // 			$.fn.datagrid.defaults.view.onAfterRender.call(this, target);  
 // 	        var dc = $.data(target, 'datagrid').dc;  
 // 	        var footer = dc.footer1.add(dc.footer2);  
