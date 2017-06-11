@@ -185,7 +185,7 @@
 	            cc.push('<td class="datagrid-td-rownumber"><div class="datagrid-cell-rownumber">'+rownumber+'</div></td>');  
 	        }  
 	        for(var i=0; i<fields.length; i++){  
-	            var field = fields[i];  
+	            var field = fields[i];
 	            var col = $(target).datagrid('getColumnOption', field);  
 	            if (col){  
 	                var value = rowData[field]; // the field value  
@@ -201,43 +201,37 @@
 	                var cls = classValue ? 'class="' + classValue + '"' : '';  
 	                var style = col.hidden ? 'style="display:none;' + styleValue + '"' : (styleValue ? 'style="' + styleValue + '"' : '');  
 	                  
-	                cc.push('<td field="' + field + '" ' + cls + ' ' + style + '>');  
-	                  
-	                if (col.checkbox){  
-	                    style = '';  
-	                } else if (col.expander){  
-	                    style = "text-align:center;height:16px;";  
-	                } else {  
-	                    style = styleValue;  
-	                    if (col.align){style += ';text-align:' + col.align + ';'}  
-	                    if (!opts.nowrap){  
-	                        style += ';white-space:normal;height:auto;';  
-	                    } else if (opts.autoRowHeight){  
-	                        style += ';height:auto;';  
-	                    }  
+	                cc.push('<td field="' + field + '" ' + cls + ' ' + style);  
+	                if(col.ddfield){
+	                	cc.push('ddfield="'+ col.ddfield+'"');
+	                }
+	                if(col.dufield){
+	                	cc.push('dufield="'+ col.dufield+'"');
 	                }  
+	                cc.push('>');
+                    style = styleValue;  
+                    if (col.align){style += ';text-align:' + col.align + ';'}  
+                    if (!opts.nowrap){  
+                        style += ';white-space:normal;height:auto;';  
+                    } else if (opts.autoRowHeight){  
+                        style += ';height:auto;';  
+                    }  
 	                  
 	                cc.push('<div style="' + style + '" ');  
-	                if (col.checkbox){  
-	                    cc.push('class="datagrid-cell-check ');  
-	                } else {  
-	                    cc.push('class="datagrid-cell ' + col.cellClass);  
-	                }  
+                    cc.push('class="datagrid-cell ' + col.cellClass);  
 	                cc.push('">');  
 	                  
-	                if (col.checkbox){  
-	                    cc.push('<input type="checkbox" name="' + field + '" value="' + (value!=undefined ? value : '') + '">');  
-	                } else if (col.expander) {  
-	                    //cc.push('<div style="text-align:center;width:16px;height:16px;">');  
-	                    cc.push('<span class="datagrid-row-expander datagrid-row-expand" style="display:inline-block;width:16px;height:16px;cursor:pointer;" />');  
-	                    //cc.push('</div>');  
-	                } else if (col.formatter){  
+	                if (col.formatter){  
 	                    cc.push(col.formatter(value, rowData, rowIndex));  
 	                } else {  
 	                    cc.push(value);  
 	                }  
 	                  
-	                cc.push('</div>');  
+	                cc.push('</div>'); 
+	                
+	                if(col.expander){
+	                	cc.push('<div class="drillgrid-cell-expander drillgrid-cell-'+ col.expander+'"></div>' );
+	                }
 	                cc.push('</td>');  
 	            }  
 	        }  
@@ -292,21 +286,28 @@
 	        var body = dc.body1.add(dc.body2);  
 	        var clickHandler = ($.data(body[0],'events')||$._data(body[0],'events')).click[0].handler;  
 	        body.unbind('click').bind('click', function(e){  
-	            var tt = $(e.target);  
+	            var tt = $(e.target);
+	            var td = tt.colsest('td');
 	            var tr = tt.closest('tr.datagrid-row');  
 	            if (!tr.length){return}  
-	            if (tt.hasClass('datagrid-row-expander')){  
-	                var rowIndex = parseInt(tr.attr('datagrid-row-index'));  
-	                if (tt.hasClass('datagrid-row-expand')){  
-	                    $(target).datagrid('expandRow', rowIndex);  
-	                } else {  
-	                    $(target).datagrid('collapseRow', rowIndex);  
-	                }  
-	                $(target).datagrid('fixRowHeight');  
-	                  
-	            } else {  
-	                clickHandler(e);  
-	            }  
+//	            if (tt.hasClass('datagrid-row-expander')){  
+//	                var rowIndex = parseInt(tr.attr('datagrid-row-index'));  
+//	                if (tt.hasClass('datagrid-row-expand')){  
+//	                    $(target).datagrid('expandRow', rowIndex);  
+//	                } else {  
+//	                    $(target).datagrid('collapseRow', rowIndex);  
+//	                }  
+//	                $(target).datagrid('fixRowHeight');  
+//	                  
+//	            } else {  
+//	                clickHandler(e);  
+//	            }  
+				if(tt.hasClass('drillgrid-cell-expand')){
+					tt.removeClass('drillgrid-cell-expand').addClass('drillgrid-cell-collapse');
+				}
+				if(tt.hasClass('drillgrid-cell-collapse')){
+					tt.removeClass('drillgrid-cell-collapse').addClass('drillgrid-cell-expand');
+				}
 	            e.stopPropagation();  
 	        });  
 		},
@@ -407,12 +408,14 @@
 	            },0);  
 	        } 
 		},
-// 		onAfterRender:function(target){
+   		onAfterRender:function(target){
+   			this.bindEvent(target)
 // 			$.fn.datagrid.defaults.view.onAfterRender.call(this, target);  
 // 	        var dc = $.data(target, 'datagrid').dc;  
 // 	        var footer = dc.footer1.add(dc.footer2);  
 // 	        footer.find('span.datagrid-row-expander').css('visibility', 'hidden');
-// 		},
+
+   		},
 		getClosestRenderedPage:function(renderedPages,page){
 			var i,l = renderedPages.length;
 			var ret;
@@ -461,7 +464,6 @@
 				}
 			}
 			this.reCalcRenderedPages(renderedPages,page,i);
-			console.log(this.renderedPages1,this.renderedPages2);
 			return ret;
 		},
 		reCalcRenderedPages:function(renderedPages,page,closestIndex){
@@ -470,7 +472,7 @@
 			var e_ = renderedPages[closestIndex +1];
 			var type = typeof e;
 			var type_ = typeof e_;
-			console.log('recalc page:'+page,'rendered:',this.isRendered(page,renderedPages),'renderedPages:',renderedPages)
+// 			console.log('recalc page:'+page,'rendered:',this.isRendered(page,renderedPages),'renderedPages:',renderedPages)
 			if(this.isRendered(page,renderedPages)){
 				return;
 			} 
@@ -516,7 +518,9 @@
 					}
 				}
 			}
-			
+			if(this.isRendered(page,renderedPages)){
+				return;
+			}
 			renderedPages.splice(closestIndex+1,0,page);
 			return;
 		},
@@ -576,7 +580,8 @@
 					this.rpage = page;  
 	   	            this.rindex = (page-1)*(opts.rPageSize || opts.pageSize);  
 	   	            this.rows = rows;
-	   	            this.populateRow.call(this, target);  
+	   	            this.populateRow.call(this, target);
+	   	            console.log(this.renderedPages1);
 	   	            if(isreload) dc.body2.triggerHandler('scroll.datagrid');
 				})
 			}
@@ -680,47 +685,62 @@
 	    	
 	    },
 	    scrolling: function(target){  
-	        var state = $.data(target, 'datagrid');  
+	    	var state = $.data(target, 'datagrid');  
 	        var opts = state.options;  
 	        var dc = state.dc;  
-	        var pageSize = opts.rPageSize || opts.pageSize;
-	        var dir = 'y';
-	        if (!opts.finder.getRows(target).length){
-	            this.reload.call(this, target);  
-	        } else {  
-	            if (!dc.body2.is(':visible')){return}  
-	            var headerHeight = dc.view2.children('div.datagrid-header').outerHeight();  
-	              
-	            var bottomDiv = dc.body2.children('div.datagrid-btable-bottom');  
-	            if (!bottomDiv.length){return;}  
-	            var csspos = dc.body2.css('position');
-	            var deltaHeight = csspos != 'static'? 0:headerHeight;
-	            var bottom = bottomDiv.position().top - headerHeight;  
-	            bottom = Math.floor(bottom);  
-	  
-	            if (bottom < 0){  
-	                this.reload.call(this, target);  
-	            } else if (top > 0){  
-	                var page = Math.floor(this.index/pageSize);
-	                if(!this.isRendered(page-1)){
-	                	this.loadPage(page-1);
-	                }
-	                if(!this.isRendered(page)){
-		                this.loadPage(target,page);
-	                }
-	            } else if (bottom < dc.body2.height()){  
-	                if (state.data.rows.length+this.rindex >= state.data.total){  
-	                    return;  
-	                }  
-	                var page = Math.floor(this.rindex/pageSize)+2;  
-	                if(!this.isRendered(page)){
-		                this.loadPage(target,page,dir);
-	                }
-// 	                if(!this.isRendered(page+1)){
-// 		                this.loadPage(page+1);
-// 	                }
-	            }  
-	        }  
+	        var top = $(dc.body2).scrollTop() + opts.deltaTopHeight;  
+	        var index = Math.floor(top/opts.rowHeight);  
+	        var pageSize = opts.rPageSize ||　opts.pageSize;
+	        var page = Math.floor(index/pageSize) + 1;  
+	        // load page
+	        if(!this.isRendered(page)){
+	        	this.loadPage(target,page,'y');
+	        }
+	        if(index%pageSize>0 && !this.isRendered(page+1)){
+	        	this.loadPage(target,page+1,'y');
+	        }
+//	        var state = $.data(target, 'datagrid');  
+//	        var opts = state.options;  
+//	        var dc = state.dc;  
+//	        var pageSize = opts.rPageSize || opts.pageSize;
+//	        var dir = 'y';
+//	        $(target).datagrid('loading');
+//	        if (!opts.finder.getRows(target).length){
+//	            this.reload.call(this, target);  
+//	        } else {  
+//	            if (!dc.body2.is(':visible')){return}  
+//	            var headerHeight = dc.view2.children('div.datagrid-header').outerHeight();  
+//	              
+//	            var bottomDiv = dc.body2.children('div.datagrid-btable-bottom');  
+//	            if (!bottomDiv.length){return;}  
+//	            var csspos = dc.body2.css('position');
+//	            var deltaHeight = csspos != 'static'? 0:headerHeight;
+//	            var bottom = bottomDiv.position().top - headerHeight;  
+//	            bottom = Math.floor(bottom);  
+//	  
+//	            if (bottom < 0){  
+//	                this.reload.call(this, target);  
+//	            } else if (top > 0){  
+//	                var page = Math.floor(this.index/pageSize);
+//	                if(!this.isRendered(page-1)){
+//	                	this.loadPage(page-1);
+//	                }
+//	                if(!this.isRendered(page)){
+//		                this.loadPage(target,page);
+//	                }
+//	            } else if (bottom < dc.body2.height()){  
+//	                if (state.data.rows.length+this.rindex >= state.data.total){  
+//	                    return;  
+//	                }  
+//	                var page = Math.floor(this.rindex/pageSize)+2;  
+//	                if(!this.isRendered(page)){
+//		                this.loadPage(target,page,dir);
+//	                }
+//// 	                if(!this.isRendered(page+1)){
+//// 		                this.loadPage(page+1);
+//// 	                }
+//	            }  
+//	        }  
 	    },  
 		reload: function(target){  
 	        var state = $.data(target, 'datagrid');  
